@@ -3,14 +3,15 @@ from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KernelDensity
+
+from GMM import GaussianMixtureModel
 from parsing.ParsedData import get_all_blocks
 
-K = 4
 rand = np.random.RandomState(42)
 
 
-def k_means(coords):
-    kmeans = KMeans(n_clusters=K, random_state=rand, n_init="auto", init="k-means++")
+def k_means(coords, k):
+    kmeans = KMeans(n_clusters=k, n_init="auto", init="k-means++")
     kmeans.fit(coords)
     return kmeans.cluster_centers_, kmeans.labels_
 
@@ -19,57 +20,55 @@ def make_scatter_plot(coordinates, labels=None):
     plt.scatter(coordinates[:, 0], coordinates[:, 1], c=labels, alpha=0.4)
 
 
-def tied_spherical_covariance(coords, labels, centers):
+def tied_spherical_covariance(coords, labels, centers, k):
     dim = coords.shape[1]
 
-    all_cluster_points = np.concatenate([coords[labels == i] - centers[i] for i in range(K)], axis=0)
+    all_cluster_points = np.concatenate([coords[labels == i] - centers[i] for i in range(k)], axis=0)
     tied_covariance = np.identity(dim) * np.var(all_cluster_points)
 
-    return [tied_covariance] * K
+    return [tied_covariance] * k
 
 
-def tied_diagonal_covariance(coords, labels, centers):
-    cluster_points = np.concatenate([coords[labels == i] - centers[i] for i in range(K)])
+def tied_diagonal_covariance(coords, labels, centers, k):
+    cluster_points = np.concatenate([coords[labels == i] - centers[i] for i in range(k)])
     shared_covariance = np.diag(np.var(cluster_points, axis=0))
 
     covariances = []
-    for i in range(K):
+    for i in range(k):
         cluster_covariance = np.identity(coords.shape[1]) * shared_covariance
         covariances.append(cluster_covariance)
     return covariances
 
 
-def distinct_diagonal_covariance(coords, labels, centers):
+def distinct_diagonal_covariance(coords, labels, centers, k):
     covariances = []
-    for i in range(K):
+    for i in range(k):
         cluster_points = coords[labels == i] - centers[i]
         covariance = np.diag(np.var(cluster_points, axis=0))
         covariances.append(covariance)
     return covariances
 
 
-def tied_full_covariance(coords, labels, centers):
-    cluster_points = np.concatenate([coords[labels == i] - centers[i] for i in range(K)])
+def tied_full_covariance(coords, labels, centers, k):
+    cluster_points = np.concatenate([coords[labels == i] - centers[i] for i in range(k)])
     shared_covariance = np.cov(cluster_points, rowvar=False)
 
-    covariances = [shared_covariance] * K
+    covariances = [shared_covariance] * k
     return covariances
 
 
-def run_gmm(coordinates, digit):
-    coordinates = np.array(get_all_blocks(coordinates.filter_by_digit(digit)))
-    centers, labels = k_means(coordinates)
+def run_gmm(data, digit, k):
+    coordinates = np.array(get_all_blocks(data.filter_by_digit(digit)))
+    (labels, centers, cov) = GaussianMixtureModel(data.filter_by_digit(digit), k).get_gmm_data()
     clusters = {}
-    for i in range(K):
+    for i in range(k):
         clusters[i] = []
 
     for i, label in enumerate(labels):
         clusters[label].append(coordinates[i])
 
-    cov = tied_spherical_covariance(coordinates, labels, centers)
-
     cluster_info = []
-    for i in range(K):
+    for i in range(k):
         pi = len(clusters[i]) / sum(len(cluster) for cluster in clusters.values())
         mean = centers[i]
         covariance = cov[i]
@@ -81,32 +80,39 @@ def run_gmm(coordinates, digit):
     return cluster_info
 
 
-def part_b_wrapper(data):
-    target_cluster_info = run_gmm(data, 6)
+def part_b_wrapper(data, params, d):
+    k = params["cluster_nums"][d]
+    target_cluster_info = run_gmm(data, d, k)
     likelihoods = []
     for digit in range(10):
-        likelihoods.append(likelihood(data, digit, target_cluster_info))
+        likelihoods.append(likelihood(data, digit, target_cluster_info, k))
 
     fig, axs = plt.subplots(2, 5, tight_layout=True, sharex=True, sharey=True)
 
+    best_guess = -1
+    max_likelihood = 0
     for i, ax in enumerate(axs.flat):
         ax.set_title(f"Digit {i}")
-        kd = KernelDensity(kernel='gaussian', bandwidth=40)
+        kd = KernelDensity(kernel='gaussian', bandwidth=50)
         likely = np.array(likelihoods[i]).reshape(-1, 1)
         kd.fit(np.array(likely))
         x = np.linspace(min(likely), max(likely), 1000).reshape(-1, 1)
         log_dens = kd.score_samples(x)
-        ax.plot(x, np.exp(log_dens))
-
+        y = np.exp(log_dens)
+        if max(y) > max_likelihood:
+            max_likelihood = max(y)
+            best_guess = i
+        ax.plot(x, y)
+    print(best_guess)
     plt.show()
 
 
-def likelihood(data, digit, target_cluster_info):
+def likelihood(data, digit, target_cluster_info, k):
     filtered_data = data.filter_by_digit(digit)
     ret = []
     for utterance in range(len(filtered_data)):
         sums = []
-        for i in range(K):
+        for i in range(k):
             pi = target_cluster_info[i]["pi"]
             mean = target_cluster_info[i]["mean"]
             covariance = target_cluster_info[i]["covariance"]

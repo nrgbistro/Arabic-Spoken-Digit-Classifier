@@ -1,19 +1,19 @@
-from GMM import k_means, em, generate_gmm
+from GMM import GaussianMixtureModel
 
 
 class Classifier:
-	def __init__(self, training_data, testing_data, params):
+	def __init__(self, training_data, params):
 		self.training_data = training_data
-		self.testing_data = testing_data
 		self.params = params
 
 	def generate_model(self):
 		gmms = []
-		clustering_algorithm = k_means if self.params["use_kmeans"] else em
+		use_kmeans = self.params["use_kmeans"]
 		for i in range(10):
 			k = self.params["cluster_nums"][i]
-			gmms.append(generate_gmm(self.training_data.filter_by_digit(i), k, clustering_algorithm))
+			new_gmm = GaussianMixtureModel(self.training_data.filter_by_digit(i), k, use_kmeans)
+			gmms.append(new_gmm)
 		return gmms
 
-	def run(self):
+	def test(self, testing_data, gmms):
 		pass

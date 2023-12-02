@@ -1,7 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
-from GMM import em
+
+from GMM import GaussianMixtureModel
 
 
 def create_contours(mean, cov, points):
@@ -24,7 +25,8 @@ def create_scatter(data, k, digit):
     point_relations = [[1, 0], [2, 0], [2, 1]]
     data_blocks = data.filter_by_digit(digit)
     all_mfccs = np.vstack([data_block.mfccs for data_block in data_blocks])
-    labels, centers, covariance = em(data_blocks, k)
+    gmm = GaussianMixtureModel(data_blocks, k, use_kmeans=False)
+    labels, centers, covariance = gmm.em()
 
     v0 = all_mfccs[:, 0]
     v1 = all_mfccs[:, 1]
