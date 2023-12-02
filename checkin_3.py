@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KernelDensity
-
 from parsing.ParsedData import get_all_blocks
 
 K = 4
