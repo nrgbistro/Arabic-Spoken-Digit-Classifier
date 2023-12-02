@@ -1,4 +1,4 @@
-from cluster import k_means, em, generate_gmm
+from GMM import k_means, em, generate_gmm
 
 
 class Classifier:

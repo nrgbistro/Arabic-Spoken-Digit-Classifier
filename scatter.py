@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
-from cluster import em
+from GMM import em
 
 
 def create_contours(mean, cov, points):

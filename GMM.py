@@ -3,19 +3,25 @@ from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 
 
-class Cluster:
-	def __init__(self, data, k, algorithm):
+class GaussianMixtureModel:
+	def __init__(self, algorithm):
+		self.algorithm = algorithm
+		self.data = None
+		self.k = None
+		self.trained_gmm = None
+
+	def train(self, k, data):
 		self.data = data
 		self.k = k
-		self.algorithm = algorithm
-
-	def run(self):
 		if self.algorithm == "kmeans":
-			return self.k_means()
+			self.k_means()
 		elif self.algorithm == "em":
-			return self.em()
+			self.em()
 		else:
 			raise Exception("Invalid clustering algorithm")
+
+	def predict(self, new_point):
+		return self.trained_gmm.predict(new_point)
 
 	def k_means(self):
 		all_mfccs = np.vstack([data_block.mfccs for data_block in self.data])
@@ -23,6 +29,7 @@ class Cluster:
 		labels = kmeans.labels_
 		centers = kmeans.cluster_centers_
 		covariance = kmeans.covariance_
+		self.trained_gmm = kmeans
 		return labels, centers, covariance
 
 	def em(self):
@@ -31,14 +38,11 @@ class Cluster:
 		labels = gmm.predict(all_mfccs)
 		centers = gmm.means_
 		covariance = gmm.covariances_
+		self.trained_gmm = gmm
 		return labels, centers, covariance
 
 
 def generate_gmm(data, k, clustering_algorithm):
-	cluster = Cluster(data, k, clustering_algorithm)
-	labels, centers, covariance = cluster.run()
-	return {
-		"labels": labels,
-		"centers": centers,
-		"covariance": covariance
-	}
+	gmm = GaussianMixtureModel(clustering_algorithm)
+	gmm.train(data, k)
+	return gmm
