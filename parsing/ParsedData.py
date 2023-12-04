@@ -23,6 +23,15 @@ class ParsedData:
     def __getitem__(self, index):
         return self.data[index]
 
+    def __str__(self):
+        ret = ""
+        for data_block in self.data:
+            ret += str(data_block) + "\n"
+        return ret
+
+    def shape(self):
+        return len(self.data), len(self.data[0].mfccs), len(self.data[0].mfccs[0])
+
     def get(self):
         return self.data
 
