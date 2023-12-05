@@ -1,8 +1,9 @@
 import time
+import numpy as np
 from matplotlib import pyplot as plt
+from scipy.stats import multivariate_normal
 from GMM import GaussianMixtureModel
 from GradientColorMapper import GradientColorMapper
-from Likelihood import Likelihood
 
 MAX_CORRECT = 220
 
@@ -11,15 +12,29 @@ class Classifier:
     def __init__(self, training_data, hyperparams):
         self.training_data = training_data
         self.hyperparams = hyperparams
-        self.gmms = self._generate_models()
-        self.Likelihood = Likelihood(self.gmms, self.hyperparams["k_mapping"])
+        self.gmms = self.generate_models()
 
-    def _generate_models(self):
+    def _compute_likelihoods(self, utterance):
+        ret = []
+        for i in range(len(self.gmms)):
+            sums = []
+            gmm = self.gmms[i]
+            for k in range(self.hyperparams["k_mapping"][i]):
+                pi = gmm[k]["pi"]
+                mean = gmm[k]["mean"]
+                covariance = gmm[k]["covariance"]
+                sums.append(
+                    pi * multivariate_normal.pdf(utterance.mfccs, mean=mean, cov=covariance))
+            out_sums = np.sum(np.array(sums), axis=0)
+            ret.append(np.sum(np.log(out_sums)))
+        return ret
+
+    def _get_max_likelihood(self, utterance):
+        return np.argmax(self._compute_likelihoods(utterance))
+
+    def generate_models(self):
         GMM = GaussianMixtureModel(self.training_data, self.hyperparams)
         return GMM.get_gmms()
-
-    def _classify(self, utterance):
-        return self.Likelihood.get_max_likelihood(utterance)
 
     def confusion(self, testing_data):
         print("Generating confusion matrix...")
@@ -29,14 +44,14 @@ class Classifier:
             start_time = time.time()
 
             for utterance in data:
-                confusion_matrix[digit][self._classify(utterance)] += 1
+                confusion_matrix[digit][self._get_max_likelihood(utterance)] += 1
             end_time = time.time()
             print(f"Generated row {str(digit)} after " + "{:.2f}".format(round(end_time - start_time, 2)) + " seconds")
-        diag_cmapper = GradientColorMapper((1, 0, 0), (0, 1, 0), MAX_CORRECT)
-        offdiag_cmapper = GradientColorMapper((1, 1, 1), (0, 0, 0), MAX_CORRECT)
+        diag_color_mapper = GradientColorMapper((1, 0, 0), (0, 1, 0), MAX_CORRECT)
+        off_diag_color_mapper = GradientColorMapper((1, 1, 1), (0, 0, 0), MAX_CORRECT)
 
         # Create a 2D list for cell colors
-        cell_colors = [[offdiag_cmapper(confusion_matrix[i][j]) if i != j else diag_cmapper(confusion_matrix[i][j])
+        cell_colors = [[off_diag_color_mapper(confusion_matrix[i][j]) if i != j else diag_color_mapper(confusion_matrix[i][j])
                         for j in range(len(confusion_matrix[i]))] for i in range(len(confusion_matrix))]
 
         confusion_matrix_str = [[str(round(confusion_matrix[i][j] / MAX_CORRECT * 100, 2)) + "%" for j in range(len(confusion_matrix[i]))] for i in range(len(confusion_matrix))]
