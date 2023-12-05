@@ -5,6 +5,8 @@ from sklearn.mixture import GaussianMixture
 from Covariance import Covariance
 from parsing.ParsedData import get_all_blocks
 
+RANDOM_STATE = 42
+
 
 class GaussianMixtureModel:
 	def __init__(self, data, hyperparams):
@@ -25,38 +27,35 @@ class GaussianMixtureModel:
 		start_time = time.time()
 		coordinates = np.array(get_all_blocks(self.data.filter_by_digit(digit)))
 		labels, centers, cov = self._k_means(digit) if self.hyperparams["use_kmeans"] else self._em(digit)
-		clusters = {}
-		for i in range(self.hyperparams["k_mapping"][digit]):
-			clusters[i] = []
+		clusters = [[] for _ in range(self.hyperparams["k_mapping"][digit])]
 
 		for i, label in enumerate(labels):
 			clusters[label].append(coordinates[i])
 
-		cluster_info = []
-		for i in range(self.hyperparams["k_mapping"][digit]):
-			pi = len(clusters[i]) / sum(len(cluster) for cluster in clusters.values())
-			mean = centers[i]
-			covariance = cov[i]
-			cluster_info.append({
-				"pi": pi,
-				"mean": mean,
-				"covariance": covariance
-			})
+		cluster_lengths = np.array([len(cluster) for cluster in clusters])
+		pi = cluster_lengths / cluster_lengths.sum()
+		cluster_info = [{"pi": pi[i], "mean": centers[i], "covariance": cov[i]} for i in range(len(pi))]
+
 		end_time = time.time()
-		print("Trained digit " + str(digit) + " with k=" + str(self.hyperparams["k_mapping"][digit]) + " after " + "{:.2f}".format(round(end_time - start_time, 2)) + " seconds")
+		print("Trained digit " + str(digit) + " with k=" + str(
+			self.hyperparams["k_mapping"][digit]) + " after " + "{:.2f}".format(
+			round(end_time - start_time, 2)) + " seconds")
 		return cluster_info
 
 	def _k_means(self, digit):
 		all_mfccs = np.vstack([data_block.mfccs for data_block in self.data.filter_by_digit(digit)])
-		kmeans = KMeans(n_clusters=self.hyperparams["k_mapping"][digit], random_state=self.hyperparams["k_mapping"][digit], n_init='auto').fit(all_mfccs)
+		kmeans = KMeans(n_clusters=self.hyperparams["k_mapping"][digit], random_state=RANDOM_STATE, n_init='auto')
+		kmeans.fit(all_mfccs)
 		labels = kmeans.labels_
 		centers = kmeans.cluster_centers_
-		covariance = Covariance(self.hyperparams["covariance_type"], self.hyperparams["covariance_tied"])(all_mfccs, labels, centers, self.hyperparams["k_mapping"][digit])
+		Cov = Covariance(self.hyperparams["covariance_type"], self.hyperparams["covariance_tied"])
+		covariance = Cov(all_mfccs, labels, centers, self.hyperparams["k_mapping"][digit])
 		return labels, centers, covariance
 
 	def _em(self, digit):
 		all_mfccs = np.vstack([data_block.mfccs for data_block in self.data.filter_by_digit(digit)])
-		em = GaussianMixture(n_components=self.hyperparams["k_mapping"][digit], random_state=self.hyperparams["k_mapping"][digit]).fit(all_mfccs)
+		em = GaussianMixture(n_components=self.hyperparams["k_mapping"][digit], random_state=RANDOM_STATE)
+		em.fit(all_mfccs)
 		labels = em.predict(all_mfccs)
 		centers = em.means_
 		covariance = em.covariances_

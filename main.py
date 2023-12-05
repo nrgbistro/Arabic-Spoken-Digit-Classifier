@@ -1,7 +1,5 @@
 import time
-
 from matplotlib import pyplot as plt
-
 from Classifier import Classifier
 from parsing.ParsedData import ParsedData
 from parsing.dataParser import parse_file
@@ -13,7 +11,7 @@ if __name__ == '__main__':
 
 	hyperparameters = {
 		"mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-		"use_kmeans": True,
+		"use_kmeans": False,
 		"covariance_type": "full",
 		"covariance_tied": True,
 		"k_mapping": {
