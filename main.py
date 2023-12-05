@@ -1,3 +1,7 @@
+import time
+
+from matplotlib import pyplot as plt
+
 from Classifier import Classifier
 from parsing.ParsedData import ParsedData
 from parsing.dataParser import parse_file
@@ -9,10 +13,10 @@ if __name__ == '__main__':
 
 	hyperparameters = {
 		"mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-		"use_kmeans": False,
-		"covariance_type": "diag",
-		"covariance_tied": False,
-		"cluster_nums": {
+		"use_kmeans": True,
+		"covariance_type": "full",
+		"covariance_tied": True,
+		"k_mapping": {
 			0: 4,
 			1: 3,
 			2: 3,
@@ -20,10 +24,16 @@ if __name__ == '__main__':
 			4: 3,
 			5: 3,
 			6: 4,
-			7: 3,
+			7: 4,
 			8: 4,
-			9: 4
+			9: 5
 		}
 	}
+	start_time = time.time()
 	classifier = Classifier(training_data, hyperparameters)
-	classifier.confusion(testing_data)
+	avg_accuracy = classifier.confusion(testing_data)
+	print("Average accuracy: " + str(round(avg_accuracy, 2)) + "%")
+	end_time = time.time()
+	print("Total time: " + "{:.2f}".format(round(end_time - start_time, 2)) + " seconds")
+	plt.show()
+
