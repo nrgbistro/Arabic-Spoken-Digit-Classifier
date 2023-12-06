@@ -29,16 +29,28 @@ def _convert_cov_constraints_em(covariance_type, covariance_tied):
 
 
 def _fix_em_cov_output(covariance, covariance_type, covariance_tied, k):
-    if not covariance_tied:
-        return covariance
-    elif covariance_type == "full":
-        return [covariance] * k
+    if covariance_type == "full":
+        if covariance_tied:
+            ret = np.asarray([covariance] * k)
+        else:
+            ret = covariance
     elif covariance_type == "diagonal" or covariance_type == "diag":
-        return np.asarray([np.diag(cov) for cov in covariance])
+        if covariance_tied:
+            ret = np.asarray([np.diag(cov) for cov in covariance])
+        else:
+            ret = np.asarray([np.diag(cov) for cov in covariance])
     elif covariance_type == "spherical":
-        return np.asarray([np.diag([covariance] * 13)] * k)
+        if covariance_tied:
+            ret = np.asarray([np.diag([covariance] * 13)] * k)
+        else:
+            ret = np.asarray([np.diag([cov] * 13) for cov in covariance])
     else:
-        raise ValueError("Invalid covariance type: " + covariance_type)
+        ret = ValueError("Invalid covariance type: " + covariance_type)
+    assert len(ret.shape) == 3
+    assert ret.shape[0] == k
+    assert ret.shape[1] == 13
+    assert ret.shape[2] == 13
+    return ret
 
 
 class GaussianMixtureModel:
