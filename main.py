@@ -12,21 +12,22 @@ if __name__ == '__main__':
 	hyperparameters = {
 		"mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
 		"use_kmeans": False,
-		"covariance_type": "full",
-		"covariance_tied": True,
+		"covariance_type": "spherical",
+		"covariance_tied":  True,
 		"k_mapping": {
 			0: 4,
 			1: 3,
 			2: 3,
 			3: 4,
 			4: 3,
-			5: 3,
+			5: 4,
 			6: 4,
 			7: 4,
 			8: 4,
 			9: 5
 		}
 	}
+
 	start_time = time.time()
 	classifier = Classifier(training_data, hyperparameters)
 	avg_accuracy = classifier.confusion(testing_data)
