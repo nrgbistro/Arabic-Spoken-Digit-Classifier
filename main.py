@@ -2,7 +2,6 @@ from pprint import pprint
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
-
 from Classifier import Classifier
 from parsing.ParsedData import ParsedData
 from parsing.dataParser import parse_file
@@ -40,7 +39,7 @@ def test_all_combinations_avg(hyperparams):
     # 					 [88.09090909, 88.72727273],
     # 					 [87.54545455, 88.90909091]])
     bar_values = np.array([list(value) for value in output_mapping.values()])
-    print(bar_values)
+    pprint(bar_values)
     bar_width = 0.35
     positions = np.arange(len(bar_names))
 
@@ -180,26 +179,27 @@ if __name__ == '__main__':
     training_data = ParsedData(parse_file("spoken_arabic_digits/Train_Arabic_Digit.txt", 66))
     testing_data = ParsedData(parse_file("spoken_arabic_digits/Test_Arabic_Digit.txt", 22))
 
-	hyperparameters = {
-		"mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
-		"use_kmeans": True,
-		"covariance_type": "spherical",
-		"covariance_tied":  False,
-		"k_mapping": {
-			0: 4,
-			1: 3,
-			2: 3,
-			3: 4,
-			4: 3,
-			5: 4,
-			6: 4,
-			7: 4,
-			8: 4,
-			9: 5
-		}
-	}
+    hyperparameters = {
+        "mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "use_kmeans": False,
+        "covariance_type": "full",
+        "covariance_tied":  False,
+        "k_mapping": {
+            0: 4,
+            1: 3,
+            2: 3,
+            3: 4,
+            4: 3,
+            5: 4,
+            6: 4,
+            7: 4,
+            8: 4,
+            9: 5
+        }
+    }
 
     print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
     # test_all_combinations_avg(hyperparameters)
     # test_all_combinations_individual(hyperparameters)
     plt.show()
+
