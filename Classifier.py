@@ -1,7 +1,6 @@
 import time
 import numpy as np
 from matplotlib import pyplot as plt
-from scipy.stats import multivariate_normal
 from GMM import GaussianMixtureModel
 from GradientColorMapper import GradientColorMapper
 
