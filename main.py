@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.patches import Patch
 from Classifier import Classifier
+from check_ins.checkin_1 import make_plots_part_a
 from parsing.ParsedData import ParsedData
 from parsing.dataParser import parse_file
 
@@ -16,29 +17,29 @@ def test_all_combinations_avg(hyperparams):
             key = " ".join(["tied" if cov_tied else "distinct", cov_type])
             output_mapping[key] = [0, 0]
 
-    for use_kmeans in [True, False]:
-        for cov_type in cov_types:
-            for cov_tied in [True, False]:
-                print("\nTesting covariance type: " + cov_type + ", covariance tied: " + str(cov_tied))
-                hyperparams["use_kmeans"] = use_kmeans
-                hyperparams["covariance_type"] = cov_type
-                hyperparams["covariance_tied"] = cov_tied
-                classifier = Classifier(training_data, hyperparams)
-                _, avg_accuracy = classifier.confusion(testing_data, show_plot=False, show_timing=False)
-                key = " ".join(["tied" if cov_tied else "distinct", cov_type])
-                if use_kmeans:
-                    output_mapping[key][0] = avg_accuracy
-                else:
-                    output_mapping[key][1] = avg_accuracy
+    # for use_kmeans in [True, False]:
+    #     for cov_type in cov_types:
+    #         for cov_tied in [True, False]:
+    #             print("\nTesting covariance type: " + cov_type + ", covariance tied: " + str(cov_tied))
+    #             hyperparams["use_kmeans"] = use_kmeans
+    #             hyperparams["covariance_type"] = cov_type
+    #             hyperparams["covariance_tied"] = cov_tied
+    #             classifier = Classifier(training_data, hyperparams)
+    #             _, avg_accuracy = classifier.confusion(testing_data, show_plot=False, show_timing=False)
+    #             key = " ".join(["tied" if cov_tied else "distinct", cov_type])
+    #             if use_kmeans:
+    #                 output_mapping[key][0] = avg_accuracy
+    #             else:
+    #                 output_mapping[key][1] = avg_accuracy
 
     bar_names = [name.title() for name in list(output_mapping.keys())]
-    # bar_values = np.array([[76.36363636, 76.81818182],
-    # 					 [86.09090909, 76.40909091],
-    # 					 [82.13636364, 84.        ],
-    # 					 [86.09090909, 86.45454545],
-    # 					 [88.09090909, 88.72727273],
-    # 					 [87.54545455, 88.90909091]])
     bar_values = np.array([list(value) for value in output_mapping.values()])
+    bar_values = np.array([[74.72727273, 74.86363636],
+                           [84.54545455, 73.72727273],
+                           [80.54545455, 81.95454545],
+                           [84.54545455, 84.68181818],
+                           [86.5       , 88.09090909],
+                           [88.        , 90.        ]])
     pprint(bar_values)
     bar_width = 0.35
     positions = np.arange(len(bar_names))
@@ -176,20 +177,33 @@ def test_all_combinations_individual(hyperparams):
 
 
 def test_mfcc_combinations(hyperparams):
-    baseline = Classifier(training_data, hyperparams).confusion(testing_data, show_plot=False, show_timing=False)[1]
-    hyperparams_copy = hyperparams.copy()
-    differences = []
+    baseline_hyperparams = hyperparams.copy()
+    baseline_hyperparams["mfcc_indexes"] = [i for i in range(13)]
+    accuracies, avg_baseline = Classifier(training_data, baseline_hyperparams).confusion(testing_data, show_plot=False, show_timing=False)
+    min_baseline = min(accuracies)
+    avf_differences = []
+    min_differences = []
     for i in range(len(hyperparams["mfcc_indexes"])):
+        hyperparams_copy = hyperparams.copy()
         mfcc_indexes = hyperparams["mfcc_indexes"].copy()
         mfcc_indexes.pop(i)
         hyperparams_copy["mfcc_indexes"] = mfcc_indexes
-        accuracy = Classifier(training_data, hyperparams_copy).confusion(testing_data, show_plot=False, show_timing=False)[1]
-        differences.append(accuracy - baseline)
-    pprint(differences)
-    plt.bar([i for i in range(len(differences))], differences)
+        new_accuracies, avg_accuracy = Classifier(training_data, hyperparams_copy).confusion(testing_data, show_plot=False, show_timing=False)
+        min_accuracy = min(new_accuracies)
+        min_differences.append(min_accuracy - min_baseline)
+        avf_differences.append(avg_accuracy - avg_baseline)
+    pprint(avf_differences)
+    plt.figure()
+    plt.bar([i for i in range(len(avf_differences))], avf_differences)
     plt.xlabel("MFCC Index")
     plt.ylabel("Difference in Accuracy (%)")
-    plt.title("Difference in Accuracy for Each MFCC Index Removed")
+    plt.title("Difference in Average Accuracy for Each MFCC Index Removed")
+
+    plt.figure()
+    plt.bar([i for i in range(len(min_differences))], min_differences)
+    plt.xlabel("MFCC Index")
+    plt.ylabel("Difference in Accuracy (%)")
+    plt.title("Difference in Minimum Accuracy for Each MFCC Index Removed")
 
 
 if __name__ == '__main__':
@@ -199,7 +213,7 @@ if __name__ == '__main__':
     all_mfccs = [i for i in range(13)]
 
     hyperparameters = {
-        "mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "mfcc_indexes": [0, 1, 2, 3, 4, -5, 6, 7, 8, 9, 10, 11, 12],
         "use_kmeans": False,
         "covariance_type": "full",
         "covariance_tied":  False,
@@ -217,8 +231,10 @@ if __name__ == '__main__':
         }
     }
 
-    # print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
     # test_all_combinations_avg(hyperparameters)
     # test_all_combinations_individual(hyperparameters)
-    test_mfcc_combinations(hyperparameters)
+    # test_mfcc_combinations(hyperparameters)
+    print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
+    # make_plots_part_a(training_data)
     plt.show()
+

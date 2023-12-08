@@ -94,6 +94,7 @@ class GaussianMixtureModel:
         return labels, centers, covariance
 
     def _fix_em_cov_output(self, covariance, covariance_type, covariance_tied, k):
+        mfcc_length = len([x for x in self.hyperparams["mfcc_indexes"] if x >= 0])
         if covariance_type == "full":
             if covariance_tied:
                 ret = np.asarray([covariance] * k)
@@ -106,13 +107,13 @@ class GaussianMixtureModel:
                 ret = np.asarray([np.diag(cov) for cov in covariance])
         elif covariance_type == "spherical":
             if covariance_tied:
-                ret = np.asarray([np.diag([covariance] * 13)] * k)
+                ret = np.asarray([np.diag([covariance] * mfcc_length)] * k)
             else:
-                ret = np.asarray([np.diag([cov] * 13) for cov in covariance])
+                ret = np.asarray([np.diag([cov] * mfcc_length) for cov in covariance])
         else:
             ret = ValueError("Invalid covariance type: " + covariance_type)
         assert len(ret.shape) == 3
         assert ret.shape[0] == k
-        assert ret.shape[1] == len(self.hyperparams["mfcc_indexes"])
-        assert ret.shape[2] == len(self.hyperparams["mfcc_indexes"])
+        assert ret.shape[1] == mfcc_length
+        assert ret.shape[2] == mfcc_length
         return ret
