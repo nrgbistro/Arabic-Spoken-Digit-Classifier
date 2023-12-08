@@ -8,5 +8,8 @@ class DataBlock:
     gender: str  # m or f
     mfccs: list  # [[mfccs], [mfccs], [mfccs], ...]
 
+    def filter_mfccs(self, mfcc_indexes):
+        return DataBlock(self.digit, self.index, self.gender, [[mfcc[i] for i in mfcc_indexes] for mfcc in self.mfccs])
+
     def __str__(self):
         return str(self.digit) + " " + str(self.gender) + " " + str(self.index) + " MFCCs..."

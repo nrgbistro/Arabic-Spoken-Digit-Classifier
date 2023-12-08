@@ -9,7 +9,7 @@ MAX_CORRECT = 220
 
 class Classifier:
     def __init__(self, training_data, hyperparams):
-        self.training_data = training_data
+        self.training_data = training_data.filter_by_mfccs(hyperparams["mfcc_indexes"])
         self.hyperparams = hyperparams
         self.gmms = self.generate_models()
 
@@ -56,6 +56,7 @@ class Classifier:
         return ret
 
     def confusion(self, testing_data, show_plot=True, show_timing=False):
+        testing_data = testing_data.filter_by_mfccs(self.hyperparams["mfcc_indexes"])
         if show_timing:
             print("Generating confusion matrix...")
         confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]

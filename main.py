@@ -175,9 +175,28 @@ def test_all_combinations_individual(hyperparams):
     fig.legend(handles=legend_handles, loc='center', bbox_to_anchor=(0.1, 0.95))
 
 
+def test_mfcc_combinations(hyperparams):
+    baseline = Classifier(training_data, hyperparams).confusion(testing_data, show_plot=False, show_timing=False)[1]
+    hyperparams_copy = hyperparams.copy()
+    differences = []
+    for i in range(len(hyperparams["mfcc_indexes"])):
+        mfcc_indexes = hyperparams["mfcc_indexes"].copy()
+        mfcc_indexes.pop(i)
+        hyperparams_copy["mfcc_indexes"] = mfcc_indexes
+        accuracy = Classifier(training_data, hyperparams_copy).confusion(testing_data, show_plot=False, show_timing=False)[1]
+        differences.append(accuracy - baseline)
+    pprint(differences)
+    plt.bar([i for i in range(len(differences))], differences)
+    plt.xlabel("MFCC Index")
+    plt.ylabel("Difference in Accuracy (%)")
+    plt.title("Difference in Accuracy for Each MFCC Index Removed")
+
+
 if __name__ == '__main__':
     training_data = ParsedData(parse_file("spoken_arabic_digits/Train_Arabic_Digit.txt", 66))
     testing_data = ParsedData(parse_file("spoken_arabic_digits/Test_Arabic_Digit.txt", 22))
+
+    all_mfccs = [i for i in range(13)]
 
     hyperparameters = {
         "mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
@@ -198,8 +217,8 @@ if __name__ == '__main__':
         }
     }
 
-    print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
+    # print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
     # test_all_combinations_avg(hyperparameters)
     # test_all_combinations_individual(hyperparameters)
+    test_mfcc_combinations(hyperparameters)
     plt.show()
-

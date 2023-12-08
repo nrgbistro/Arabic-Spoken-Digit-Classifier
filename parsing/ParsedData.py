@@ -41,3 +41,9 @@ class ParsedData:
     def filter_by_digit(self, d):
         return ParsedData([data_block for data_block in self.data if data_block.digit == d])
 
+    def filter_by_mfccs(self, mfcc_indexes):
+        new_data = []
+        for data_block in self.data:
+            new_data.append(data_block.filter_mfccs(mfcc_indexes))
+        return ParsedData(new_data)
+
