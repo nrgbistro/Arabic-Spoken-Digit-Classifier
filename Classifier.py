@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from GMM import GaussianMixtureModel
 from GradientColorMapper import GradientColorMapper
 
-MAX_CORRECT = 220
+# MAX_CORRECT = 220
 
 
 class Classifier:
@@ -56,6 +56,7 @@ class Classifier:
         return ret
 
     def confusion(self, testing_data, show_plot=True, show_timing=False):
+        MAX_CORRECT = round(len(testing_data.get()) / 10)
         testing_data = testing_data.filter_by_mfccs(self.hyperparams["mfcc_indexes"])
         if show_timing:
             print("Generating confusion matrix...")
@@ -67,13 +68,13 @@ class Classifier:
             if show_timing:
                 print(f"Generated row {str(digit)} after " + "{:.2f}".format(round(end_time - start_time, 2)) + " seconds")
         if show_plot:
-            self.plot_confusion(confusion_matrix)
+            self.plot_confusion(confusion_matrix, max_correct=MAX_CORRECT)
         accuracy_percentages = [confusion_matrix[i][i] / MAX_CORRECT * 100 for i in range(len(confusion_matrix))]
         return accuracy_percentages, np.mean(accuracy_percentages)
 
-    def plot_confusion(self, confusion_matrix):
-        diag_color_mapper = GradientColorMapper((1, 0, 0), (0, 1, 0), MAX_CORRECT)
-        off_diag_color_mapper = GradientColorMapper((1, 1, 1), (0, 0, 0), MAX_CORRECT)
+    def plot_confusion(self, confusion_matrix, max_correct=220):
+        diag_color_mapper = GradientColorMapper((1, 0, 0), (0, 1, 0), max_correct)
+        off_diag_color_mapper = GradientColorMapper((1, 1, 1), (0, 0, 0), max_correct)
 
         # Create a 2D list for cell colors
         cell_colors = [
@@ -81,7 +82,7 @@ class Classifier:
              for j in range(len(confusion_matrix[i]))] for i in range(len(confusion_matrix))]
 
         confusion_matrix_str = [
-            [str(round(confusion_matrix[i][j] / MAX_CORRECT * 100, 2)) + "%" for j in range(len(confusion_matrix[i]))]
+            [str(round(confusion_matrix[i][j] / max_correct * 100, 2)) + "%" for j in range(len(confusion_matrix[i]))]
             for i in range(len(confusion_matrix))]
         fig, ax = plt.subplots()
         ax.axis('off')

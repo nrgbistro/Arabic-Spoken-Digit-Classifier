@@ -1,3 +1,4 @@
+import random
 from pprint import pprint
 import numpy as np
 from matplotlib import pyplot as plt
@@ -176,34 +177,89 @@ def test_all_combinations_individual(hyperparams):
     fig.legend(handles=legend_handles, loc='center', bbox_to_anchor=(0.1, 0.95))
 
 
-def test_mfcc_combinations(hyperparams):
-    baseline_hyperparams = hyperparams.copy()
-    baseline_hyperparams["mfcc_indexes"] = [i for i in range(13)]
-    accuracies, avg_baseline = Classifier(training_data, baseline_hyperparams).confusion(testing_data, show_plot=False, show_timing=False)
-    min_baseline = min(accuracies)
-    avf_differences = []
-    min_differences = []
-    for i in range(len(hyperparams["mfcc_indexes"])):
-        hyperparams_copy = hyperparams.copy()
-        mfcc_indexes = hyperparams["mfcc_indexes"].copy()
-        mfcc_indexes.pop(i)
-        hyperparams_copy["mfcc_indexes"] = mfcc_indexes
-        new_accuracies, avg_accuracy = Classifier(training_data, hyperparams_copy).confusion(testing_data, show_plot=False, show_timing=False)
-        min_accuracy = min(new_accuracies)
-        min_differences.append(min_accuracy - min_baseline)
-        avf_differences.append(avg_accuracy - avg_baseline)
-    pprint(avf_differences)
-    plt.figure()
-    plt.bar([i for i in range(len(avf_differences))], avf_differences)
-    plt.xlabel("MFCC Index")
-    plt.ylabel("Difference in Accuracy (%)")
-    plt.title("Difference in Average Accuracy for Each MFCC Index Removed")
+def test_mfcc_combinations(hyperparams, training, testing):
+    current_mfcc_indexes = []
+    accuracies = []
+    # for num_mfccs in range(13):
+    #     best_new_mfcc_index = -1
+    #     best_new_mfcc_accuracy = 0
+    #     new_mfcc_indexes = current_mfcc_indexes.copy()
+    #     for new_mfcc_index in range(13):
+    #         if new_mfcc_index in new_mfcc_indexes:
+    #             continue
+    #         else:
+    #             new_mfcc_indexes.append(new_mfcc_index)
+    #             print("testing mfcc indexes: " + str(new_mfcc_indexes) + "...")
+    #             hyperparams["mfcc_indexes"] = new_mfcc_indexes
+    #             classifier = Classifier(training, hyperparams)
+    #             _, avg_accuracy = classifier.confusion(testing, show_plot=False, show_timing=False)
+    #             # avg_accuracy = random.randint(1, 100)
+    #             if avg_accuracy > best_new_mfcc_accuracy:
+    #                 best_new_mfcc_accuracy = avg_accuracy
+    #                 best_new_mfcc_index = new_mfcc_index
+    #
+    #             new_mfcc_indexes.pop()
+    #     current_mfcc_indexes.append(best_new_mfcc_index)
+    #     new_mfcc_indexes.append(best_new_mfcc_index)
+    #     accuracies.append([best_new_mfcc_accuracy, sorted(new_mfcc_indexes)])
 
+    female_accuracies = [[58.45454545454545, [4]],
+                         [81.72727272727272, [2, 4]],
+                         [88.18181818181819, [1, 2, 4]],
+                         [92.45454545454547, [1, 2, 4, 7]],
+                         [93.36363636363636, [1, 2, 4, 7, 10]],
+                         [94.0909090909091, [1, 2, 4, 6, 7, 10]],
+                         [94.0909090909091, [1, 2, 3, 4, 6, 7, 10]],
+                         [93.1818181818182, [1, 2, 3, 4, 5, 6, 7, 10]],
+                         [93.9090909090909, [1, 2, 3, 4, 5, 6, 7, 10, 12]],
+                         [93.18181818181819, [1, 2, 3, 4, 5, 6, 7, 8, 10, 12]],
+                         [92.81818181818183, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]],
+                         [92.0909090909091, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]],
+                         [90.18181818181817, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]]
+    male_accuracies = [[35.909090909090914, [7]],
+                         [58.27272727272727, [7, 10]],
+                         [70.63636363636364, [6, 7, 10]],
+                         [80.54545454545456, [4, 6, 7, 10]],
+                         [83.81818181818183, [4, 6, 7, 8, 10]],
+                         [88.27272727272728, [3, 4, 6, 7, 8, 10]],
+                         [89.0909090909091, [2, 3, 4, 6, 7, 8, 10]],
+                         [89.9090909090909, [2, 3, 4, 6, 7, 8, 9, 10]],
+                         [89.27272727272728, [0, 2, 3, 4, 6, 7, 8, 9, 10]],
+                         [90.54545454545453, [0, 2, 3, 4, 6, 7, 8, 9, 10, 12]],
+                         [87.72727272727272, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]],
+                         [87.0909090909091, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]],
+                         [84.81818181818181, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]]
+    accuracies = male_accuracies
+    pprint(accuracies)
+    x = [i for i in range(13)]
+    y = [accuracy[0] for accuracy in accuracies]
+    max_index = y.index(max(y))
     plt.figure()
-    plt.bar([i for i in range(len(min_differences))], min_differences)
-    plt.xlabel("MFCC Index")
-    plt.ylabel("Difference in Accuracy (%)")
-    plt.title("Difference in Minimum Accuracy for Each MFCC Index Removed")
+    plt.plot(x, y, marker='o', zorder=1, markersize=5)
+    plt.scatter(max_index, y[max_index], color='red', marker='^', label='Max Point = ' + str(round(max(y), 2)) + "%", zorder=2, s=150)
+    plt.xlabel("Number of MFCCs")
+    plt.ylabel("Average Accuracy (%)")
+    plt.title("Analysis of Number of MFCC Indices (Male)")
+    plt.legend(loc="upper left", fontsize=14)
+    plt.xticks(x)
+
+
+def test_k_values(hyperparams):
+    k_mapping = hyperparams["k_mapping"]
+    accuracies = []
+    for digit in range(10):
+        rng = [k_mapping[digit] - 1, k_mapping[digit], k_mapping[digit] + 1]
+        best_k = -1
+        best_accuracy = 0
+        for k in rng:
+            hyperparams["k_mapping"][digit] = k
+            classifier = Classifier(training_data, hyperparams)
+            _, avg_accuracy = classifier.confusion(testing_data, show_plot=False, show_timing=False)
+            if avg_accuracy > best_accuracy:
+                best_accuracy = avg_accuracy
+                best_k = k
+        accuracies.append([digit, best_accuracy, best_k])
+    pprint(accuracies)
 
 
 if __name__ == '__main__':
@@ -213,7 +269,7 @@ if __name__ == '__main__':
     all_mfccs = [i for i in range(13)]
 
     hyperparameters = {
-        "mfcc_indexes": [0, 1, 2, 3, 4, -5, 6, 7, 8, 9, 10, 11, 12],
+        "mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
         "use_kmeans": False,
         "covariance_type": "full",
         "covariance_tied":  False,
@@ -233,8 +289,15 @@ if __name__ == '__main__':
 
     # test_all_combinations_avg(hyperparameters)
     # test_all_combinations_individual(hyperparameters)
-    # test_mfcc_combinations(hyperparameters)
-    print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
+    # test_k_values(hyperparameters)
+    male_train = training_data.filter_by_gender("M")
+    male_test = testing_data.filter_by_gender("M")
+    female_train = training_data.filter_by_gender("F")
+    female_test = testing_data.filter_by_gender("F")
+    test_mfcc_combinations(hyperparameters, male_train, male_test)
+    # test_mfcc_combinations(hyperparameters, female_train, female_test)
+    # print(Classifier(male_train, hyperparameters).confusion(male_test, show_plot=True, show_timing=True))
+    # print(Classifier(female_train, hyperparameters).confusion(female_test, show_plot=True, show_timing=True))
     # make_plots_part_a(training_data)
     plt.show()
 

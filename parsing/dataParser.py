@@ -14,7 +14,7 @@ def parse_file(file_name, num_speakers):
         digit_cutoff = num_speakers * 10
         for line in file:
             if len(line.strip()) == 0 and len(current_mfccs) > 0:
-                ret.append(DataBlock(digit, speaker, digit_index, current_mfccs))
+                ret.append(DataBlock(digit, digit_index, speaker, current_mfccs))
                 if i % gender_cutoff == 0:
                     speaker = "F" if speaker == "M" else "M"
                 if i % digit_cutoff == 0:
@@ -28,5 +28,5 @@ def parse_file(file_name, num_speakers):
                 continue
             else:
                 current_mfccs.append([float(i) for i in line.strip().split(" ")])
-        ret.append(DataBlock(digit, speaker, digit_index, current_mfccs))  # last one
+        ret.append(DataBlock(digit, digit_index, speaker, current_mfccs))  # last one
     return ret

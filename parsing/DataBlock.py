@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class DataBlock:
     digit: int  # 0, 1, 2, ..., 9
     index: int  # 0, 1, 2, ..., 9
-    gender: str  # m or f
+    gender: str  # M or F
     mfccs: list  # [[mfccs], [mfccs], [mfccs], ...]
 
     def filter_mfccs(self, mfcc_indexes):

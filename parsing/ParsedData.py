@@ -38,6 +38,9 @@ class ParsedData:
     def get_by_index(self, i):
         return self.data[i]
 
+    def filter_by_gender(self, gender):
+        return ParsedData([data_block for data_block in self.data if data_block.gender == gender])
+
     def filter_by_digit(self, d):
         return ParsedData([data_block for data_block in self.data if data_block.digit == d])
 
