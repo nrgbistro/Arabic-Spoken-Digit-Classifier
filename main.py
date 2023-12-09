@@ -272,7 +272,7 @@ if __name__ == '__main__':
     hyperparameters = {
         "mfcc_indexes_M": [0, 2, 3, 4, 6, 7, 8, 9, 10, 12],
         "mfcc_indexes_F": [1, 2, 4, 6, 7, 10],
-        "mfcc_indexes": [1, 2, 4, 5, 6, 7, 8, 10, 12],
+        # "mfcc_indexes": [1, 2, 4, 5, 6, 7, 8, 10, 12],
         "use_kmeans": False,
         "covariance_type": "full",
         "covariance_tied":  False,
@@ -293,10 +293,10 @@ if __name__ == '__main__':
     # test_all_combinations_avg(hyperparameters)
     # test_all_combinations_individual(hyperparameters)
     # test_k_values(hyperparameters)
-    male_train = training_data.filter_by_gender("M")
-    male_test = testing_data.filter_by_gender("M")
-    female_train = training_data.filter_by_gender("F")
-    female_test = testing_data.filter_by_gender("F")
+    # male_train = training_data.filter_by_gender("M")
+    # male_test = testing_data.filter_by_gender("M")
+    # female_train = training_data.filter_by_gender("F")
+    # female_test = testing_data.filter_by_gender("F")
     # test_mfcc_combinations(hyperparameters, training_data, testing_data)
     # test_mfcc_combinations(hyperparameters, female_train, female_test)
     print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))

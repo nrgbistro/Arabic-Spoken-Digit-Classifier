@@ -1,3 +1,4 @@
 **/*.pptx
 /.idea/vcs.xml
 **/__pycache__
+Figures

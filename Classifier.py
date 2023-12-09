@@ -1,12 +1,8 @@
 import time
-from pprint import pprint
-
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.pyplot import colormaps
-
+from matplotlib.colors import LinearSegmentedColormap
 from GMM import GaussianMixtureModel
-from GradientColorMapper import GradientColorMapper
 
 
 class Classifier:
@@ -15,7 +11,6 @@ class Classifier:
         self.training_data_F = training_data.filter_by_gender("F").filter_by_mfccs(hyperparams["mfcc_indexes_F"])
         self.hyperparams = hyperparams
         self.gmms = self.generate_models()
-        pprint(self.gmms["M"][0])
 
     def _compute_likelihoods(self, utterance, gender):
         ret = []
@@ -86,11 +81,13 @@ class Classifier:
 
     def plot_confusion(self, confusion_matrix, max_correct=220):
         fig, (ax_matrix, ax_colorbar) = plt.subplots(1, 2,
-                                                 gridspec_kw={'width_ratios': [4, .1]},
-                                                 figsize=(9, 8))
-        # cmap = GradientColorMapper((1, 0, 0), (0, 1, 0), max_correct)
-        viridis_cmap = colormaps.get_cmap('RdYlGn')
-        im = ax_matrix.imshow(confusion_matrix, cmap=viridis_cmap)
+                                                     gridspec_kw={'width_ratios': [4, .1]},
+                                                     figsize=(9, 8))
+        confusion_matrix_percentage = [
+            [confusion_matrix[i][j] / max_correct * 100 for j in range(len(confusion_matrix[i]))] for i in
+            range(len(confusion_matrix))]
+        cmap = LinearSegmentedColormap.from_list('custom_colormap', [(.95, 0, 0), (0, .8, 0)], N=256)
+        im = ax_matrix.imshow(confusion_matrix_percentage, cmap=cmap, vmin=0, vmax=100)
         ax_matrix.set_xticks(np.arange(10))
         ax_matrix.set_yticks(np.arange(10))
         ax_matrix.set_xticklabels([str(i) for i in range(10)])
@@ -98,11 +95,19 @@ class Classifier:
         ax_matrix.set_xlabel("Predicted Values")
         ax_matrix.set_ylabel("True Values")
 
+        avg_accuracy = np.mean([confusion_matrix[i][i] / max_correct * 100 for i in range(len(confusion_matrix))])
+
         for i in range(10):
             for j in range(10):
-                ax_matrix.text(j, i, "{:.2f}%".format(confusion_matrix[i][j] / max_correct * 100), ha='center', va='center', color='white')
+                ax_matrix.text(j, i, "{:.2f}%".format(confusion_matrix_percentage[i][j]), ha='center', va='center',
+                               color='white')
 
-        fig.colorbar(im, cax=ax_colorbar)
+        ax_matrix.text(4.5, 10.5, f'Average Accuracy: {avg_accuracy:.2f}%', ha='center', va='center', color='black')
+
+        colorbar_ticks = np.arange(0, 101, 10)
+        cbar = fig.colorbar(im, cax=ax_colorbar)
+        cbar.set_ticks(colorbar_ticks)
+        cbar.set_ticklabels(colorbar_ticks)
         if self.hyperparams["covariance_type"] == "diagonal" or self.hyperparams["covariance_type"] == "diag":
             covariance_type_string = "Diagonal"
         elif self.hyperparams["covariance_type"] == "full":
@@ -114,3 +119,4 @@ class Classifier:
         fig.suptitle(" ".join(
             ["Confusion Matrix Using", algorithm_string, "With", covariance_tied_string, covariance_type_string,
              "Covariance"]))
+
