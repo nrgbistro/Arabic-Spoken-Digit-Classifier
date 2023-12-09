@@ -1,6 +1,8 @@
 import time
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.pyplot import colormaps
+
 from GMM import GaussianMixtureModel
 from GradientColorMapper import GradientColorMapper
 
@@ -73,22 +75,24 @@ class Classifier:
         return accuracy_percentages, np.mean(accuracy_percentages)
 
     def plot_confusion(self, confusion_matrix, max_correct=220):
-        diag_color_mapper = GradientColorMapper((1, 0, 0), (0, 1, 0), max_correct)
-        off_diag_color_mapper = GradientColorMapper((1, 1, 1), (0, 0, 0), max_correct)
+        fig, (ax_matrix, ax_colorbar) = plt.subplots(1, 2,
+                                                 gridspec_kw={'width_ratios': [4, .1]},
+                                                 figsize=(9, 8))
+        # cmap = GradientColorMapper((1, 0, 0), (0, 1, 0), max_correct)
+        viridis_cmap = colormaps.get_cmap('RdYlGn')
+        im = ax_matrix.imshow(confusion_matrix, cmap=viridis_cmap)
+        ax_matrix.set_xticks(np.arange(10))
+        ax_matrix.set_yticks(np.arange(10))
+        ax_matrix.set_xticklabels([str(i) for i in range(10)])
+        ax_matrix.set_yticklabels([str(i) for i in range(10)])
+        ax_matrix.set_xlabel("Predicted Values")
+        ax_matrix.set_ylabel("True Values")
 
-        # Create a 2D list for cell colors
-        cell_colors = [
-            [off_diag_color_mapper(confusion_matrix[i][j]) if i != j else diag_color_mapper(confusion_matrix[i][j])
-             for j in range(len(confusion_matrix[i]))] for i in range(len(confusion_matrix))]
+        for i in range(10):
+            for j in range(10):
+                ax_matrix.text(j, i, "{:.2f}%".format(confusion_matrix[i][j] / max_correct * 100), ha='center', va='center', color='white')
 
-        confusion_matrix_str = [
-            [str(round(confusion_matrix[i][j] / max_correct * 100, 2)) + "%" for j in range(len(confusion_matrix[i]))]
-            for i in range(len(confusion_matrix))]
-        fig, ax = plt.subplots()
-        ax.axis('off')
-        ax.table(cellText=confusion_matrix_str, cellColours=cell_colors, loc='center', cellLoc='center',
-                 colLabels=[f"GMM {i}" for i in range(10)],
-                 rowLabels=[f"Test {i}" for i in range(10)])
+        fig.colorbar(im, cax=ax_colorbar)
         if self.hyperparams["covariance_type"] == "diagonal" or self.hyperparams["covariance_type"] == "diag":
             covariance_type_string = "Diagonal"
         elif self.hyperparams["covariance_type"] == "full":
@@ -97,6 +101,6 @@ class Classifier:
             covariance_type_string = "Spherical"
         covariance_tied_string = "Tied" if self.hyperparams["covariance_tied"] else "Distinct"
         algorithm_string = "K-Means" if self.hyperparams["use_kmeans"] else "EM"
-        ax.set_title(" ".join(
+        fig.suptitle(" ".join(
             ["Confusion Matrix Using", algorithm_string, "With", covariance_tied_string, covariance_type_string,
              "Covariance"]))

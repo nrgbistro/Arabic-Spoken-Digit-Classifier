@@ -180,28 +180,28 @@ def test_all_combinations_individual(hyperparams):
 def test_mfcc_combinations(hyperparams, training, testing):
     current_mfcc_indexes = []
     accuracies = []
-    # for num_mfccs in range(13):
-    #     best_new_mfcc_index = -1
-    #     best_new_mfcc_accuracy = 0
-    #     new_mfcc_indexes = current_mfcc_indexes.copy()
-    #     for new_mfcc_index in range(13):
-    #         if new_mfcc_index in new_mfcc_indexes:
-    #             continue
-    #         else:
-    #             new_mfcc_indexes.append(new_mfcc_index)
-    #             print("testing mfcc indexes: " + str(new_mfcc_indexes) + "...")
-    #             hyperparams["mfcc_indexes"] = new_mfcc_indexes
-    #             classifier = Classifier(training, hyperparams)
-    #             _, avg_accuracy = classifier.confusion(testing, show_plot=False, show_timing=False)
-    #             # avg_accuracy = random.randint(1, 100)
-    #             if avg_accuracy > best_new_mfcc_accuracy:
-    #                 best_new_mfcc_accuracy = avg_accuracy
-    #                 best_new_mfcc_index = new_mfcc_index
-    #
-    #             new_mfcc_indexes.pop()
-    #     current_mfcc_indexes.append(best_new_mfcc_index)
-    #     new_mfcc_indexes.append(best_new_mfcc_index)
-    #     accuracies.append([best_new_mfcc_accuracy, sorted(new_mfcc_indexes)])
+    for num_mfccs in range(13):
+        best_new_mfcc_index = -1
+        best_new_mfcc_accuracy = 0
+        new_mfcc_indexes = current_mfcc_indexes.copy()
+        for new_mfcc_index in range(13):
+            if new_mfcc_index in new_mfcc_indexes:
+                continue
+            else:
+                new_mfcc_indexes.append(new_mfcc_index)
+                print("testing mfcc indexes: " + str(new_mfcc_indexes) + "...")
+                hyperparams["mfcc_indexes"] = new_mfcc_indexes
+                classifier = Classifier(training, hyperparams)
+                _, avg_accuracy = classifier.confusion(testing, show_plot=False, show_timing=False)
+                # avg_accuracy = random.randint(1, 100)
+                if avg_accuracy > best_new_mfcc_accuracy:
+                    best_new_mfcc_accuracy = avg_accuracy
+                    best_new_mfcc_index = new_mfcc_index
+
+                new_mfcc_indexes.pop()
+        current_mfcc_indexes.append(best_new_mfcc_index)
+        new_mfcc_indexes.append(best_new_mfcc_index)
+        accuracies.append([best_new_mfcc_accuracy, sorted(new_mfcc_indexes)])
 
     female_accuracies = [[58.45454545454545, [4]],
                          [81.72727272727272, [2, 4]],
@@ -229,7 +229,7 @@ def test_mfcc_combinations(hyperparams, training, testing):
                          [87.72727272727272, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]],
                          [87.0909090909091, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]],
                          [84.81818181818181, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]]
-    accuracies = male_accuracies
+    # accuracies = male_accuracies
     pprint(accuracies)
     x = [i for i in range(13)]
     y = [accuracy[0] for accuracy in accuracies]
@@ -239,7 +239,7 @@ def test_mfcc_combinations(hyperparams, training, testing):
     plt.scatter(max_index, y[max_index], color='red', marker='^', label='Max Point = ' + str(round(max(y), 2)) + "%", zorder=2, s=150)
     plt.xlabel("Number of MFCCs")
     plt.ylabel("Average Accuracy (%)")
-    plt.title("Analysis of Number of MFCC Indices (Male)")
+    plt.title("Analysis of Number of MFCC Indices")
     plt.legend(loc="upper left", fontsize=14)
     plt.xticks(x)
 
@@ -269,7 +269,7 @@ if __name__ == '__main__':
     all_mfccs = [i for i in range(13)]
 
     hyperparameters = {
-        "mfcc_indexes": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+        "mfcc_indexes": [1, 2, 4, 5, 6, 7, 8, 10, 12],
         "use_kmeans": False,
         "covariance_type": "full",
         "covariance_tied":  False,
@@ -294,9 +294,9 @@ if __name__ == '__main__':
     male_test = testing_data.filter_by_gender("M")
     female_train = training_data.filter_by_gender("F")
     female_test = testing_data.filter_by_gender("F")
-    test_mfcc_combinations(hyperparameters, male_train, male_test)
+    # test_mfcc_combinations(hyperparameters, training_data, testing_data)
     # test_mfcc_combinations(hyperparameters, female_train, female_test)
-    # print(Classifier(male_train, hyperparameters).confusion(male_test, show_plot=True, show_timing=True))
+    print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
     # print(Classifier(female_train, hyperparameters).confusion(female_test, show_plot=True, show_timing=True))
     # make_plots_part_a(training_data)
     plt.show()
