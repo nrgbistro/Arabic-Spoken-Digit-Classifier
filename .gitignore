@@ -1,2 +1,3 @@
 **/*.pptx
 /.idea/vcs.xml
+**/__pycache__

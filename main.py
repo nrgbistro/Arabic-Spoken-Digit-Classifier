@@ -229,17 +229,18 @@ def test_mfcc_combinations(hyperparams, training, testing):
                          [87.72727272727272, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12]],
                          [87.0909090909091, [0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]],
                          [84.81818181818181, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]]]
-    # accuracies = male_accuracies
+    # accuracies = female_accuracies
     pprint(accuracies)
-    x = [i for i in range(13)]
+    x = [i + 1 for i in range(13)]
     y = [accuracy[0] for accuracy in accuracies]
     max_index = y.index(max(y))
     plt.figure()
     plt.plot(x, y, marker='o', zorder=1, markersize=5)
-    plt.scatter(max_index, y[max_index], color='red', marker='^', label='Max Point = ' + str(round(max(y), 2)) + "%", zorder=2, s=150)
+    plt.scatter(max_index + 1, y[max_index], color='red', marker='^', label='Max Point = ' + str(round(max(y), 2)) + "%", zorder=2, s=120)
+    plt.grid(True)
     plt.xlabel("Number of MFCCs")
     plt.ylabel("Average Accuracy (%)")
-    plt.title("Analysis of Number of MFCC Indices")
+    plt.title("Analysis of Number of MFCC Indices (Female)")
     plt.legend(loc="upper left", fontsize=14)
     plt.xticks(x)
 
@@ -269,6 +270,8 @@ if __name__ == '__main__':
     all_mfccs = [i for i in range(13)]
 
     hyperparameters = {
+        "mfcc_indexes_M": [0, 2, 3, 4, 6, 7, 8, 9, 10, 12],
+        "mfcc_indexes_F": [1, 2, 4, 6, 7, 10],
         "mfcc_indexes": [1, 2, 4, 5, 6, 7, 8, 10, 12],
         "use_kmeans": False,
         "covariance_type": "full",
@@ -297,7 +300,6 @@ if __name__ == '__main__':
     # test_mfcc_combinations(hyperparameters, training_data, testing_data)
     # test_mfcc_combinations(hyperparameters, female_train, female_test)
     print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
-    # print(Classifier(female_train, hyperparameters).confusion(female_test, show_plot=True, show_timing=True))
     # make_plots_part_a(training_data)
     plt.show()
 

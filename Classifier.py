@@ -1,4 +1,6 @@
 import time
+from pprint import pprint
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import colormaps
@@ -6,18 +8,18 @@ from matplotlib.pyplot import colormaps
 from GMM import GaussianMixtureModel
 from GradientColorMapper import GradientColorMapper
 
-# MAX_CORRECT = 220
-
 
 class Classifier:
     def __init__(self, training_data, hyperparams):
-        self.training_data = training_data.filter_by_mfccs(hyperparams["mfcc_indexes"])
+        self.training_data_M = training_data.filter_by_gender("M").filter_by_mfccs(hyperparams["mfcc_indexes_M"])
+        self.training_data_F = training_data.filter_by_gender("F").filter_by_mfccs(hyperparams["mfcc_indexes_F"])
         self.hyperparams = hyperparams
         self.gmms = self.generate_models()
+        pprint(self.gmms["M"][0])
 
-    def _compute_likelihoods(self, utterance):
+    def _compute_likelihoods(self, utterance, gender):
         ret = []
-        for i, gmm in enumerate(self.gmms):
+        for i, gmm in enumerate(self.gmms[gender]):
             sums = []
             for k in range(self.hyperparams["k_mapping"][i]):
                 pi = gmm[k]["pi"]
@@ -43,29 +45,37 @@ class Classifier:
 
         return ret
 
-    def _get_max_likelihood(self, utterance):
-        return np.argmax(self._compute_likelihoods(utterance))
+    def _get_max_likelihood(self, utterance, gender):
+        return np.argmax(self._compute_likelihoods(utterance, gender))
 
     def generate_models(self):
-        GMM = GaussianMixtureModel(self.training_data, self.hyperparams)
-        return GMM.get_gmms()
+        hyperparams_M = self.hyperparams.copy()
+        hyperparams_M["mfcc_indexes"] = self.hyperparams["mfcc_indexes_M"]
+        hyperparams_F = self.hyperparams.copy()
+        hyperparams_F["mfcc_indexes"] = self.hyperparams["mfcc_indexes_F"]
+        ret = {
+            "M": GaussianMixtureModel(self.training_data_M, hyperparams_M).get_gmms(),
+            "F": GaussianMixtureModel(self.training_data_F, hyperparams_F).get_gmms()
+        }
+        return ret
 
     def confusion_row(self, testing_data, digit):
         ret = [0] * 10
         data = testing_data.filter_by_digit(digit)
         for utterance in data:
-            ret[self._get_max_likelihood(utterance)] += 1
+            ret[self._get_max_likelihood(utterance, utterance.gender)] += 1
         return ret
 
     def confusion(self, testing_data, show_plot=True, show_timing=False):
         MAX_CORRECT = round(len(testing_data.get()) / 10)
-        testing_data = testing_data.filter_by_mfccs(self.hyperparams["mfcc_indexes"])
+        testing_data_M = testing_data.filter_by_gender("M").filter_by_mfccs(self.hyperparams["mfcc_indexes_M"])
+        testing_data_F = testing_data.filter_by_gender("F").filter_by_mfccs(self.hyperparams["mfcc_indexes_F"])
         if show_timing:
             print("Generating confusion matrix...")
         confusion_matrix = [[0 for _ in range(10)] for _ in range(10)]
         for digit in range(10):
             start_time = time.time()
-            confusion_matrix[digit] = self.confusion_row(testing_data, digit)
+            confusion_matrix[digit] = [a + b for a, b in zip(self.confusion_row(testing_data_M, digit), self.confusion_row(testing_data_F, digit))]
             end_time = time.time()
             if show_timing:
                 print(f"Generated row {str(digit)} after " + "{:.2f}".format(round(end_time - start_time, 2)) + " seconds")
