@@ -3,6 +3,7 @@ from pprint import pprint
 
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.pyplot import colormaps
 
 from GMM import GaussianMixtureModel
@@ -82,8 +83,8 @@ class Classifier:
                                                  gridspec_kw={'width_ratios': [4, .1]},
                                                  figsize=(9, 8))
         confusion_matrix_percentage = [[confusion_matrix[i][j] / max_correct * 100 for j in range(len(confusion_matrix[i]))] for i in range(len(confusion_matrix))]
-        viridis_cmap = colormaps.get_cmap('RdYlGn')
-        im = ax_matrix.imshow(confusion_matrix_percentage, cmap=viridis_cmap, vmin=0, vmax=100)
+        cmap = LinearSegmentedColormap.from_list('custom_colormap', [(.95, 0, 0), (0, .8, 0)], N=256)
+        im = ax_matrix.imshow(confusion_matrix_percentage, cmap=cmap, vmin=0, vmax=100)
         ax_matrix.set_xticks(np.arange(10))
         ax_matrix.set_yticks(np.arange(10))
         ax_matrix.set_xticklabels([str(i) for i in range(10)])
@@ -113,4 +114,4 @@ class Classifier:
         algorithm_string = "K-Means" if self.hyperparams["use_kmeans"] else "EM"
         fig.suptitle(" ".join(
             ["Confusion Matrix Using", algorithm_string, "With", covariance_tied_string, covariance_type_string,
-             "Covariance"]))
+             "Covariance (Female)"]))
