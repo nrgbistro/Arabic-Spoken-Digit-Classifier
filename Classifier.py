@@ -1,4 +1,6 @@
 import time
+from pprint import pprint
+
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import colormaps
@@ -72,15 +74,16 @@ class Classifier:
         if show_plot:
             self.plot_confusion(confusion_matrix, max_correct=MAX_CORRECT)
         accuracy_percentages = [confusion_matrix[i][i] / MAX_CORRECT * 100 for i in range(len(confusion_matrix))]
+        pprint(confusion_matrix)
         return accuracy_percentages, np.mean(accuracy_percentages)
 
     def plot_confusion(self, confusion_matrix, max_correct=220):
         fig, (ax_matrix, ax_colorbar) = plt.subplots(1, 2,
                                                  gridspec_kw={'width_ratios': [4, .1]},
                                                  figsize=(9, 8))
-        # cmap = GradientColorMapper((1, 0, 0), (0, 1, 0), max_correct)
+        confusion_matrix_percentage = [[confusion_matrix[i][j] / max_correct * 100 for j in range(len(confusion_matrix[i]))] for i in range(len(confusion_matrix))]
         viridis_cmap = colormaps.get_cmap('RdYlGn')
-        im = ax_matrix.imshow(confusion_matrix, cmap=viridis_cmap)
+        im = ax_matrix.imshow(confusion_matrix_percentage, cmap=viridis_cmap, vmin=0, vmax=100)
         ax_matrix.set_xticks(np.arange(10))
         ax_matrix.set_yticks(np.arange(10))
         ax_matrix.set_xticklabels([str(i) for i in range(10)])
@@ -88,11 +91,18 @@ class Classifier:
         ax_matrix.set_xlabel("Predicted Values")
         ax_matrix.set_ylabel("True Values")
 
+        avg_accuracy = np.mean([confusion_matrix[i][i] / max_correct * 100 for i in range(len(confusion_matrix))])
+
         for i in range(10):
             for j in range(10):
-                ax_matrix.text(j, i, "{:.2f}%".format(confusion_matrix[i][j] / max_correct * 100), ha='center', va='center', color='white')
+                ax_matrix.text(j, i, "{:.2f}%".format(confusion_matrix_percentage[i][j]), ha='center', va='center', color='white')
 
-        fig.colorbar(im, cax=ax_colorbar)
+        ax_matrix.text(4.5, 10.5, f'Average Accuracy: {avg_accuracy:.2f}%', ha='center', va='center', color='black')
+
+        colorbar_ticks = np.arange(0, 101, 10)
+        cbar = fig.colorbar(im, cax=ax_colorbar)
+        cbar.set_ticks(colorbar_ticks)
+        cbar.set_ticklabels(colorbar_ticks)
         if self.hyperparams["covariance_type"] == "diagonal" or self.hyperparams["covariance_type"] == "diag":
             covariance_type_string = "Diagonal"
         elif self.hyperparams["covariance_type"] == "full":

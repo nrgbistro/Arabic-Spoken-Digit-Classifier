@@ -287,16 +287,28 @@ if __name__ == '__main__':
         }
     }
 
+    # confusion = [[211, 0, 1, 0, 0, 0, 5, 2, 0, 1],
+    #              [0, 206, 4, 0, 0, 1, 0, 7, 0, 2],
+    #              [1, 3, 169, 0, 0, 18, 9, 9, 8, 3],
+    #              [5, 0, 2, 192, 0, 0, 0, 18, 3, 0],
+    #              [1, 11, 0, 0, 191, 0, 0, 13, 0, 4],
+    #              [0, 0, 0, 0, 2, 203, 2, 5, 2, 6],
+    #              [9, 0, 0, 0, 0, 0, 205, 0, 0, 6],
+    #              [4, 0, 0, 2, 3, 7, 0, 197, 0, 7],
+    #              [0, 6, 3, 3, 0, 3, 1, 0, 201, 3],
+    #              [0, 0, 0, 1, 0, 8, 6, 1, 0, 204]]
+
     # test_all_combinations_avg(hyperparameters)
     # test_all_combinations_individual(hyperparameters)
     # test_k_values(hyperparameters)
-    male_train = training_data.filter_by_gender("M")
-    male_test = testing_data.filter_by_gender("M")
-    female_train = training_data.filter_by_gender("F")
-    female_test = testing_data.filter_by_gender("F")
+    # male_train = training_data.filter_by_gender("M")
+    # male_test = testing_data.filter_by_gender("M")
+    # female_train = training_data.filter_by_gender("F")
+    # female_test = testing_data.filter_by_gender("F")
     # test_mfcc_combinations(hyperparameters, training_data, testing_data)
     # test_mfcc_combinations(hyperparameters, female_train, female_test)
-    print(Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True))
+    Classifier(training_data, hyperparameters).confusion(testing_data, show_plot=True, show_timing=True)
+    # Classifier(training_data, hyperparameters).plot_confusion(confusion)
     # print(Classifier(female_train, hyperparameters).confusion(female_test, show_plot=True, show_timing=True))
     # make_plots_part_a(training_data)
     plt.show()
