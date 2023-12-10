@@ -79,9 +79,9 @@ def run_gmm(data, digit, k):
     return cluster_info
 
 
-def part_b_wrapper(data, params, d):
-    k = params["cluster_nums"][d]
-    target_cluster_info = run_gmm(data, d, k)
+def part_b_wrapper(data, params, dig):
+    k = params["cluster_nums"][dig]
+    target_cluster_info = run_gmm(data, dig, k)
     likelihoods = []
     for digit in range(10):
         likelihoods.append(likelihood(data, digit, target_cluster_info, k))
@@ -115,6 +115,39 @@ def likelihood(data, digit, target_cluster_info, k):
     return ret
 
 
+if __name__ == '__main__':
+    from parsing.dataParser import parse_file
+    from parsing.ParsedData import ParsedData
 
-
-
+    d = ParsedData(parse_file("../spoken_arabic_digits/Train_Arabic_Digit.txt", 66))
+    p = {
+        "cluster_nums": {
+            0: 4,
+            1: 3,
+            2: 3,
+            3: 4,
+            4: 3,
+            5: 4,
+            6: 4,
+            7: 4,
+            8: 4,
+            9: 5
+        },
+        "covariance_type": "full",
+        "covariance_tied": False,
+        "use_kmeans": False,
+        "mfcc_indexes": [i for i in range(13)],
+        "k_mapping": {
+            0: 4,
+            1: 3,
+            2: 3,
+            3: 4,
+            4: 3,
+            5: 4,
+            6: 4,
+            7: 4,
+            8: 4,
+            9: 5
+        }
+    }
+    part_b_wrapper(d, p, 0)

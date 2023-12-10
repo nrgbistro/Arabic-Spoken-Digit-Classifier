@@ -2,6 +2,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
 from sklearn.mixture import GaussianMixture
+from parsing.ParsedData import ParsedData
+from parsing.dataParser import parse_file
 
 
 def create_contours(mean, cov, points):
@@ -24,8 +26,10 @@ def create_scatter(data, k, digit):
     point_relations = [[1, 0], [2, 0], [2, 1]]
     data_blocks = data.filter_by_digit(digit)
     all_mfccs = np.vstack([data_block.mfccs for data_block in data_blocks])
-    gmm = GaussianMixture(data_blocks, num_components=k)
-    labels, centers, covariance = gmm
+    gmm = GaussianMixture(n_components=k)
+    gmm.fit(all_mfccs)
+    labels = gmm.predict(all_mfccs)
+    centers = gmm.means_
 
     v0 = all_mfccs[:, 0]
     v1 = all_mfccs[:, 1]
@@ -39,7 +43,7 @@ def create_scatter(data, k, digit):
         ax.scatter(points[point_relations[i][0]], points[point_relations[i][1]], c=labels, s=size, alpha=point_alpha)
         ax.set_title(f"MFCC {point_relations[i][1] + 1} (y) vs MFCC {point_relations[i][0] + 1} (x)")
         for j, cluster in enumerate(clusters):
-            cov = np.cov(cluster[:, point_relations[i]], rowvar=False)
+            cov = gmm.covariances_[j]
             contours.append(create_contours(centers[j, point_relations[i]], cov, cluster[:, point_relations[i]]))
         for j in range(k):
             ax.contour(contours[j][0], contours[j][1], contours[j][2], colors='black', alpha=contour_alpha)
@@ -47,3 +51,8 @@ def create_scatter(data, k, digit):
     fig.suptitle(f"Digit {digit}")
     plt.tight_layout()
     plt.show()
+
+
+if __name__ == '__main__':
+    training_data = ParsedData(parse_file("../spoken_arabic_digits/Train_Arabic_Digit.txt", 66))
+    create_scatter(training_data, 4, 0)

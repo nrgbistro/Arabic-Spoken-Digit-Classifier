@@ -45,7 +45,7 @@ class GaussianMixtureModel:
 
     def train_gmm(self, digit):
         start_time = time.time()
-        weights, centers, cov = self._k_means(digit) if self.hyperparams["use_kmeans"] else self._em(digit)
+        weights, centers, cov, labels = self._k_means(digit) if self.hyperparams["use_kmeans"] else self._em(digit)
 
         cluster_info = []
         for i in range(self.hyperparams["k_mapping"][digit]):
@@ -55,7 +55,8 @@ class GaussianMixtureModel:
             cluster_info.append({
                 "pi": weight,
                 "mean": mean,
-                "covariance": covariance
+                "covariance": covariance,
+                "labels": labels
             })
         end_time = time.time()
         print("Trained digit " + str(digit) + " with k=" + str(
@@ -78,7 +79,8 @@ class GaussianMixtureModel:
         centers = kmeans.cluster_centers_
         Cov = Covariance(self.hyperparams["covariance_type"], self.hyperparams["covariance_tied"])
         covariance = Cov(all_mfccs, labels, centers, self.hyperparams["k_mapping"][digit])
-        return weights, centers, covariance
+        labels = kmeans.predict(all_mfccs)
+        return weights, centers, covariance, labels
 
     def _em(self, digit):
         all_mfccs = np.vstack([data_block.mfccs for data_block in self.data.filter_by_digit(digit)])
@@ -91,8 +93,9 @@ class GaussianMixtureModel:
         centers = em.means_
         covariances = self._fix_em_cov_output(em.covariances_, self.hyperparams["covariance_type"],
                                              self.hyperparams["covariance_tied"], self.hyperparams["k_mapping"][digit])
+        labels = em.predict(all_mfccs)
 
-        return weights, centers, covariances
+        return weights, centers, covariances, labels
 
     def _fix_em_cov_output(self, covariance, covariance_type, covariance_tied, k):
         mfcc_length = len([x for x in self.hyperparams["mfcc_indexes"] if x >= 0])
