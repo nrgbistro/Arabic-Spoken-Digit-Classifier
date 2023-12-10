@@ -1,15 +1,9 @@
 import time
 from pprint import pprint
-
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.pyplot import colormaps
-
 from GMM import GaussianMixtureModel
-from GradientColorMapper import GradientColorMapper
-
-# MAX_CORRECT = 220
 
 
 class Classifier:
@@ -114,4 +108,4 @@ class Classifier:
         algorithm_string = "K-Means" if self.hyperparams["use_kmeans"] else "EM"
         fig.suptitle(" ".join(
             ["Confusion Matrix Using", algorithm_string, "With", covariance_tied_string, covariance_type_string,
-             "Covariance (Female)"]))
+             "Covariance"]))

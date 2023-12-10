@@ -3,7 +3,6 @@ from matplotlib import pyplot as plt
 from scipy.stats import multivariate_normal
 from sklearn.cluster import KMeans
 from sklearn.neighbors import KernelDensity
-
 from GMM import GaussianMixtureModel
 from parsing.ParsedData import get_all_blocks
 
@@ -59,7 +58,7 @@ def tied_full_covariance(coords, labels, centers, k):
 
 def run_gmm(data, digit, k):
     coordinates = np.array(get_all_blocks(data.filter_by_digit(digit)))
-    (labels, centers, cov) = GaussianMixtureModel(data.filter_by_digit(digit), k).get_gmm_data()
+    (labels, centers, cov) = GaussianMixtureModel(data.filter_by_digit(digit), k).train_gmm(digit)
     clusters = {}
     for i in range(k):
         clusters[i] = []
@@ -87,10 +86,8 @@ def part_b_wrapper(data, params, d):
     for digit in range(10):
         likelihoods.append(likelihood(data, digit, target_cluster_info, k))
 
-    fig, axs = plt.subplots(2, 5, tight_layout=True, sharex=True, sharey=True)
+    fig, axs = plt.subplots(10, 1, tight_layout=True, sharex=True, sharey=True)
 
-    best_guess = -1
-    max_likelihood = 0
     for i, ax in enumerate(axs.flat):
         ax.set_title(f"Digit {i}")
         kd = KernelDensity(kernel='gaussian', bandwidth=50)
@@ -99,11 +96,7 @@ def part_b_wrapper(data, params, d):
         x = np.linspace(min(likely), max(likely), 1000).reshape(-1, 1)
         log_dens = kd.score_samples(x)
         y = np.exp(log_dens)
-        if max(y) > max_likelihood:
-            max_likelihood = max(y)
-            best_guess = i
         ax.plot(x, y)
-    print(best_guess)
     plt.show()
 
 
