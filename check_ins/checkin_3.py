@@ -57,31 +57,12 @@ def tied_full_covariance(coords, labels, centers, k):
 
 
 def run_gmm(data, digit, k):
-    coordinates = np.array(get_all_blocks(data.filter_by_digit(digit)))
-    (labels, centers, cov) = GaussianMixtureModel(data.filter_by_digit(digit), k).train_gmm(digit)
-    clusters = {}
-    for i in range(k):
-        clusters[i] = []
-
-    for i, label in enumerate(labels):
-        clusters[label].append(coordinates[i])
-
-    cluster_info = []
-    for i in range(k):
-        pi = len(clusters[i]) / sum(len(cluster) for cluster in clusters.values())
-        mean = centers[i]
-        covariance = cov[i]
-        cluster_info.append({
-            "pi": pi,
-            "mean": mean,
-            "covariance": covariance
-        })
-    return cluster_info
+    return GaussianMixtureModel(data.filter_by_digit(digit), k).train_gmm(digit)
 
 
 def part_b_wrapper(data, params, dig):
     k = params["cluster_nums"][dig]
-    target_cluster_info = run_gmm(data, dig, k)
+    target_cluster_info = run_gmm(data, dig, params)
     likelihoods = []
     for digit in range(10):
         likelihoods.append(likelihood(data, digit, target_cluster_info, k))
@@ -96,7 +77,12 @@ def part_b_wrapper(data, params, dig):
         x = np.linspace(min(likely), max(likely), 1000).reshape(-1, 1)
         log_dens = kd.score_samples(x)
         y = np.exp(log_dens)
+        if i == 5:
+            ax.set_ylabel("Probability Density")
+        if i == 9:
+            ax.set_xlabel("Log Likelihood")
         ax.plot(x, y)
+    plt.suptitle(f"Log Likelihood of All Digits Against Digit {dig}'s Model")
     plt.show()
 
 
@@ -150,4 +136,4 @@ if __name__ == '__main__':
             9: 5
         }
     }
-    part_b_wrapper(d, p, 0)
+    part_b_wrapper(d, p, 1)
